@@ -3,6 +3,7 @@ SMS resource — maps every SMS endpoint to a clean Python method.
 
 Access via ``client.sms``, never instantiate directly.
 """
+
 from __future__ import annotations
 
 import logging
@@ -32,7 +33,7 @@ class SMSResource:
     """
 
     def __init__(self, session: _Session, default_sender: str) -> None:
-        self._session        = session
+        self._session = session
         self._default_sender = default_sender
 
     # ------------------------------------------------------------------
@@ -41,11 +42,11 @@ class SMSResource:
 
     def send(
         self,
-        to:        Union[str, List[str]],
-        text:      str,
+        to: Union[str, List[str]],
+        text: str,
         *,
         sender_id: Optional[str] = None,
-        flash:     bool          = False,
+        flash: bool = False,
         reference: Optional[str] = None,
     ) -> SMSResponse:
         """
@@ -81,9 +82,9 @@ class SMSResource:
                 "Hello everyone!",
             )
         """
-        sender     = validate_sender_id(sender_id or self._default_sender)
-        text       = validate_text(text)
-        ref        = make_reference(reference)
+        sender = validate_sender_id(sender_id or self._default_sender)
+        text = validate_text(text)
+        ref = make_reference(reference)
         recipients = validate_phone_list(to)
 
         destination: Union[str, List[str]] = (
@@ -91,17 +92,21 @@ class SMSResource:
         )
 
         payload: Dict = {
-            "from":      sender,
-            "to":        destination,
-            "text":      text,
-            "flash":     int(flash),
+            "from": sender,
+            "to": destination,
+            "text": text,
+            "flash": int(flash),
             "reference": ref,
         }
 
         logger.info(
             "send | from=%s to=%s ref=%s",
             sender,
-            destination if isinstance(destination, str) else f"{len(destination)} recipients",
+            (
+                destination
+                if isinstance(destination, str)
+                else f"{len(destination)} recipients"
+            ),
             ref,
         )
         body = self._session.post("api/sms/v2/text/single", payload)
@@ -113,9 +118,9 @@ class SMSResource:
 
     def send_bulk(
         self,
-        messages:  List[MessageRecipient],
+        messages: List[MessageRecipient],
         *,
-        flash:     bool          = False,
+        flash: bool = False,
         reference: Optional[str] = None,
     ) -> BulkSMSResponse:
         """
@@ -141,9 +146,10 @@ class SMSResource:
         """
         if not messages:
             from pynextsms.exceptions import ValidationError
+
             raise ValidationError("messages list must not be empty.")
 
-        ref          = make_reference(reference)
+        ref = make_reference(reference)
         msg_payloads = [m.to_payload(self._default_sender) for m in messages]
 
         for mp in msg_payloads:
@@ -152,8 +158,8 @@ class SMSResource:
             validate_sender_id(mp["from"])
 
         payload = {
-            "messages":  msg_payloads,
-            "flash":     int(flash),
+            "messages": msg_payloads,
+            "flash": int(flash),
             "reference": ref,
         }
 
@@ -167,9 +173,9 @@ class SMSResource:
 
     def schedule(
         self,
-        to:        str,
-        text:      str,
-        options:   ScheduleOptions,
+        to: str,
+        text: str,
+        options: ScheduleOptions,
         *,
         sender_id: Optional[str] = None,
         reference: Optional[str] = None,
@@ -202,21 +208,25 @@ class SMSResource:
             resp = client.sms.schedule("255712345678", "Daily tip!", opts)
         """
         sender = validate_sender_id(sender_id or self._default_sender)
-        to     = validate_phone(to)
-        text   = validate_text(text)
-        ref    = make_reference(reference)
+        to = validate_phone(to)
+        text = validate_text(text)
+        ref = make_reference(reference)
 
         payload: Dict = {
-            "from":      sender,
-            "to":        to,
-            "text":      text,
+            "from": sender,
+            "to": to,
+            "text": text,
             "reference": ref,
             **options.to_payload(),
         }
 
         logger.info(
             "schedule | from=%s to=%s date=%s time=%s ref=%s",
-            sender, to, options.send_date, options.send_time, ref,
+            sender,
+            to,
+            options.send_date,
+            options.send_time,
+            ref,
         )
         body = self._session.post("api/sms/v2/text/single", payload)
         return SMSResponse.from_http(200, body, reference=ref)

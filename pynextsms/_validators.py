@@ -4,6 +4,7 @@ Input validation helpers.
 Every public function raises :class:`~pynextsms.ValidationError` on bad input,
 so callers never need boilerplate guards.
 """
+
 from __future__ import annotations
 
 import re

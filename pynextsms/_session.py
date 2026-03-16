@@ -8,6 +8,7 @@ Responsibilities
 * Map HTTP error codes → typed SDK exceptions.
 * Automatic retry with exponential back-off on transient 5xx / connection errors.
 """
+
 from __future__ import annotations
 
 import logging
@@ -27,33 +28,35 @@ class _Session:
 
     def __init__(
         self,
-        token:       str,
-        base_url:    str,
+        token: str,
+        base_url: str,
         *,
-        timeout:     int = _DEFAULT_TIMEOUT,
+        timeout: int = _DEFAULT_TIMEOUT,
         max_retries: int = 3,
     ) -> None:
-        self._token    = token
+        self._token = token
         self._base_url = base_url.rstrip("/")
-        self._timeout  = timeout
+        self._timeout = timeout
 
         self._session = requests.Session()
-        self._session.headers.update({
-            "Authorization": f"Bearer {token}",
-            "Content-Type":  "application/json",
-            "Accept":        "application/json",
-        })
+        self._session.headers.update(
+            {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
 
         retry = Retry(
-            total            = max_retries,
-            backoff_factor   = 0.5,
-            status_forcelist = [500, 502, 503, 504],
-            allowed_methods  = ["POST", "GET"],
-            raise_on_status  = False,
+            total=max_retries,
+            backoff_factor=0.5,
+            status_forcelist=[500, 502, 503, 504],
+            allowed_methods=["POST", "GET"],
+            raise_on_status=False,
         )
         adapter = HTTPAdapter(max_retries=retry)
         self._session.mount("https://", adapter)
-        self._session.mount("http://",  adapter)
+        self._session.mount("http://", adapter)
 
     # ------------------------------------------------------------------
     # Public helpers
@@ -99,7 +102,9 @@ class _Session:
             or body.get("detail")
             or f"HTTP {status}"
         )
-        raise APIError(str(api_message), status_code=status, response_body=response.text[:500])
+        raise APIError(
+            str(api_message), status_code=status, response_body=response.text[:500]
+        )
 
     def close(self) -> None:
         self._session.close()

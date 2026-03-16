@@ -9,6 +9,7 @@ Hierarchy::
     ├── RateLimitError        – 429 Too Many Requests
     └── APIError              – Any other non-2xx HTTP response
 """
+
 from __future__ import annotations
 
 from typing import Optional
@@ -47,6 +48,7 @@ class AuthenticationError(PyNextSMSError):
 
 class ValidationError(PyNextSMSError):
     """Raised for invalid input *before* an HTTP request is sent."""
+
     pass
 
 

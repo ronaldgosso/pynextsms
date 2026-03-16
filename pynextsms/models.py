@@ -3,6 +3,7 @@ Data models for PyNextSMS SDK.
 
 Uses only stdlib dataclasses — no third-party dependencies beyond ``requests``.
 """
+
 from __future__ import annotations
 
 import json
@@ -15,17 +16,20 @@ from typing import Any, Dict, Optional
 # Enums
 # ---------------------------------------------------------------------------
 
+
 class RepeatInterval(str, Enum):
     """Valid repeat intervals for scheduled SMS messages."""
-    HOURLY  = "hourly"
-    DAILY   = "daily"
-    WEEKLY  = "weekly"
+
+    HOURLY = "hourly"
+    DAILY = "daily"
+    WEEKLY = "weekly"
     MONTHLY = "monthly"
 
 
 # ---------------------------------------------------------------------------
 # Request helpers
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class ScheduleOptions:
@@ -51,11 +55,12 @@ class ScheduleOptions:
             end_date=date(2025, 6, 30),
         )
     """
-    send_date:  date
-    send_time:  time
-    repeat:     Optional[RepeatInterval] = None
+
+    send_date: date
+    send_time: time
+    repeat: Optional[RepeatInterval] = None
     start_date: Optional[date] = None
-    end_date:   Optional[date] = None
+    end_date: Optional[date] = None
 
     def to_payload(self) -> Dict[str, str]:
         payload: Dict[str, str] = {
@@ -90,14 +95,15 @@ class MessageRecipient:
             MessageRecipient(to="255655912841", text="Hello Martin!"),
         ]
     """
-    to:        str
-    text:      str
+
+    to: str
+    text: str
     sender_id: Optional[str] = None
 
     def to_payload(self, default_sender: str) -> Dict[str, str]:
         return {
             "from": self.sender_id or default_sender,
-            "to":   self.to,
+            "to": self.to,
             "text": self.text,
         }
 
@@ -105,6 +111,7 @@ class MessageRecipient:
 # ---------------------------------------------------------------------------
 # Response models
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class SMSResponse:
@@ -118,15 +125,16 @@ class SMSResponse:
         reference:    Tracking reference echoed back by the API.
         raw:          Full deserialized JSON body for advanced inspection.
     """
-    successful:  bool
+
+    successful: bool
     status_code: int
-    message_id:  Optional[str]        = None
-    reference:   Optional[str]        = None
-    raw:         Dict[str, Any]       = field(default_factory=dict)
+    message_id: Optional[str] = None
+    reference: Optional[str] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         status = "✓ sent" if self.successful else "✗ failed"
-        parts  = [f"SMSResponse({status}, http={self.status_code}"]
+        parts = [f"SMSResponse({status}, http={self.status_code}"]
         if self.message_id:
             parts.append(f", id={self.message_id!r}")
         if self.reference:
@@ -149,11 +157,11 @@ class SMSResponse:
         reference: Optional[str] = None,
     ) -> "SMSResponse":
         return cls(
-            successful  = 200 <= status_code < 300,
-            status_code = status_code,
-            message_id  = body.get("message_id") or body.get("id"),
-            reference   = reference or body.get("reference"),
-            raw         = body,
+            successful=200 <= status_code < 300,
+            status_code=status_code,
+            message_id=body.get("message_id") or body.get("id"),
+            reference=reference or body.get("reference"),
+            raw=body,
         )
 
 
@@ -169,11 +177,12 @@ class BulkSMSResponse:
         reference:    Batch tracking reference.
         raw:          Full deserialized JSON body.
     """
-    successful:  bool
+
+    successful: bool
     status_code: int
-    total:       int                  = 0
-    reference:   Optional[str]       = None
-    raw:         Dict[str, Any]      = field(default_factory=dict)
+    total: int = 0
+    reference: Optional[str] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
 
     def __repr__(self) -> str:
         status = "✓ accepted" if self.successful else "✗ failed"
@@ -197,9 +206,9 @@ class BulkSMSResponse:
         reference: Optional[str] = None,
     ) -> "BulkSMSResponse":
         return cls(
-            successful  = 200 <= status_code < 300,
-            status_code = status_code,
-            total       = total,
-            reference   = reference or body.get("reference"),
-            raw         = body,
+            successful=200 <= status_code < 300,
+            status_code=status_code,
+            total=total,
+            reference=reference or body.get("reference"),
+            raw=body,
         )

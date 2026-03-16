@@ -4,6 +4,7 @@ Full test suite for PyNextSMS SDK.
 Run:  pytest tests/ -v
 Cov:  pytest tests/ --cov=pynextsms --cov-report=term-missing
 """
+
 from __future__ import annotations
 
 from datetime import date, time
@@ -25,10 +26,10 @@ from pynextsms import (
     RateLimitError,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def make_client(**kw) -> SMSClient:
     return SMSClient(**{"token": "test_tok", "sender_id": "BRAND", **kw})
@@ -47,6 +48,7 @@ def mock_resp(status: int = 200, body: dict | None = None) -> MagicMock:
 # Initialisation
 # ---------------------------------------------------------------------------
 
+
 class TestClientInit:
     def test_raises_with_no_token(self, monkeypatch):
         monkeypatch.delenv("PYNEXTSMS_TOKEN", raising=False)
@@ -54,7 +56,7 @@ class TestClientInit:
             SMSClient()
 
     def test_reads_token_from_env(self, monkeypatch):
-        monkeypatch.setenv("PYNEXTSMS_TOKEN",     "env_tok")
+        monkeypatch.setenv("PYNEXTSMS_TOKEN", "env_tok")
         monkeypatch.setenv("PYNEXTSMS_SENDER_ID", "ENVBRAND")
         c = SMSClient()
         assert c._token == "env_tok"
@@ -74,47 +76,57 @@ class TestClientInit:
 # Validators
 # ---------------------------------------------------------------------------
 
+
 class TestValidators:
     def test_valid_phone_returns_cleaned(self):
         from pynextsms._validators import validate_phone
+
         assert validate_phone("255712345678") == "255712345678"
 
     def test_phone_bad_prefix_raises(self):
         from pynextsms._validators import validate_phone
+
         with pytest.raises(ValidationError, match="Invalid phone number"):
             validate_phone("0712345678")
 
     def test_phone_too_short_raises(self):
         from pynextsms._validators import validate_phone
+
         with pytest.raises(ValidationError):
             validate_phone("25571234")
 
     def test_sender_too_long_raises(self):
         from pynextsms._validators import validate_sender_id
+
         with pytest.raises(ValidationError, match="too long"):
             validate_sender_id("AVERYLONGBRANDNAME")
 
     def test_empty_text_raises(self):
         from pynextsms._validators import validate_text
+
         with pytest.raises(ValidationError):
             validate_text("   ")
 
     def test_reference_too_long_raises(self):
         from pynextsms._validators import make_reference
+
         with pytest.raises(ValidationError):
             make_reference("x" * 51)
 
     def test_reference_auto_generated_is_8_chars(self):
         from pynextsms._validators import make_reference
+
         assert len(make_reference(None)) == 8
 
     def test_too_many_recipients_raises(self):
         from pynextsms._validators import validate_phone_list
+
         with pytest.raises(ValidationError, match="Too many"):
             validate_phone_list([f"255712{str(i).zfill(6)}" for i in range(1001)])
 
     def test_single_string_accepted_as_list(self):
         from pynextsms._validators import validate_phone_list
+
         result = validate_phone_list("255712345678")
         assert result == ["255712345678"]
 
@@ -122,6 +134,7 @@ class TestValidators:
 # ---------------------------------------------------------------------------
 # sms.send
 # ---------------------------------------------------------------------------
+
 
 class TestSend:
     @patch("pynextsms._session.requests.Session.post")
@@ -186,15 +199,18 @@ class TestSend:
 # sms.send_bulk
 # ---------------------------------------------------------------------------
 
+
 class TestSendBulk:
     @patch("pynextsms._session.requests.Session.post")
     def test_bulk_success(self, mock_post):
         mock_post.return_value = mock_resp(200, {})
         c = make_client()
-        resp = c.sms.send_bulk([
-            MessageRecipient("255712345678", "Hello Yohana!"),
-            MessageRecipient("255655912841", "Hello Martin!"),
-        ])
+        resp = c.sms.send_bulk(
+            [
+                MessageRecipient("255712345678", "Hello Yohana!"),
+                MessageRecipient("255655912841", "Hello Martin!"),
+            ]
+        )
         assert resp.successful
         assert resp.total == 2
         c.close()
@@ -219,6 +235,7 @@ class TestSendBulk:
 # sms.schedule
 # ---------------------------------------------------------------------------
 
+
 class TestSchedule:
     @patch("pynextsms._session.requests.Session.post")
     def test_schedule_one_time(self, mock_post):
@@ -234,14 +251,14 @@ class TestSchedule:
         mock_post.return_value = mock_resp(200, {})
         c = make_client()
         opts = ScheduleOptions(
-            send_date  = date(2025, 6, 1),
-            send_time  = time(9, 0),
-            repeat     = RepeatInterval.DAILY,
-            end_date   = date(2025, 6, 30),
+            send_date=date(2025, 6, 1),
+            send_time=time(9, 0),
+            repeat=RepeatInterval.DAILY,
+            end_date=date(2025, 6, 30),
         )
         c.sms.schedule("255712345678", "Daily!", opts)
         payload = mock_post.call_args.kwargs.get("json") or mock_post.call_args.args[1]
-        assert payload["repeat"]   == "daily"
+        assert payload["repeat"] == "daily"
         assert payload["end_date"] == "2025-06-30"
         c.close()
 
@@ -259,6 +276,7 @@ class TestSchedule:
 # ---------------------------------------------------------------------------
 # Error handling
 # ---------------------------------------------------------------------------
+
 
 class TestErrorHandling:
     @patch("pynextsms._session.requests.Session.post")
@@ -305,6 +323,7 @@ class TestErrorHandling:
 # Model helpers
 # ---------------------------------------------------------------------------
 
+
 class TestModels:
     def test_sms_response_to_dict(self):
         resp = SMSResponse(successful=True, status_code=200, reference="abc")
@@ -314,6 +333,7 @@ class TestModels:
 
     def test_sms_response_to_json(self):
         import json
+
         resp = SMSResponse(successful=True, status_code=200)
         parsed = json.loads(resp.to_json())
         assert parsed["successful"] is True
@@ -339,7 +359,7 @@ class TestModels:
         assert p["from"] == "CUSTOM"
 
     def test_repeat_interval_values(self):
-        assert RepeatInterval.HOURLY.value  == "hourly"
-        assert RepeatInterval.DAILY.value   == "daily"
-        assert RepeatInterval.WEEKLY.value  == "weekly"
+        assert RepeatInterval.HOURLY.value == "hourly"
+        assert RepeatInterval.DAILY.value == "daily"
+        assert RepeatInterval.WEEKLY.value == "weekly"
         assert RepeatInterval.MONTHLY.value == "monthly"

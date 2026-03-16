@@ -1,6 +1,7 @@
 """
 SMSClient — the single entry point for the PyNextSMS SDK.
 """
+
 from __future__ import annotations
 
 import logging
@@ -54,12 +55,12 @@ class SMSClient:
 
     def __init__(
         self,
-        token:       Optional[str] = None,
+        token: Optional[str] = None,
         *,
-        sender_id:   Optional[str] = None,
-        base_url:    str           = _DEFAULT_BASE_URL,
-        timeout:     int           = 30,
-        max_retries: int           = 3,
+        sender_id: Optional[str] = None,
+        base_url: str = _DEFAULT_BASE_URL,
+        timeout: int = 30,
+        max_retries: int = 3,
     ) -> None:
         resolved_token = token or os.environ.get("PYNEXTSMS_TOKEN")
         if not resolved_token:
@@ -69,17 +70,19 @@ class SMSClient:
             )
 
         resolved_sender = sender_id or os.environ.get("PYNEXTSMS_SENDER_ID", "")
-        validated_sender = validate_sender_id(resolved_sender) if resolved_sender else ""
+        validated_sender = (
+            validate_sender_id(resolved_sender) if resolved_sender else ""
+        )
 
-        self._token     = resolved_token
+        self._token = resolved_token
         self._sender_id = validated_sender
-        self._base_url  = base_url
+        self._base_url = base_url
 
         self._session = _Session(
-            token       = resolved_token,
-            base_url    = base_url,
-            timeout     = timeout,
-            max_retries = max_retries,
+            token=resolved_token,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
         )
 
         # ── Resource namespaces ──────────────────────────────────────────
