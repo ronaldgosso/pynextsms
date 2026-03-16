@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Optional
+from typing import Any, Optional
 
 from pynextsms._session import _Session
 from pynextsms._validators import validate_sender_id
@@ -99,7 +99,7 @@ class SMSClient:
     def __enter__(self) -> "SMSClient":
         return self
 
-    def __exit__(self, *_) -> None:
+    def __exit__(self, *_: Any) -> None:
         self.close()
 
     def close(self) -> None:

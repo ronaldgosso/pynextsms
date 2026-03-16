@@ -7,7 +7,7 @@ Access via ``client.sms``, never instantiate directly.
 from __future__ import annotations
 
 import logging
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pynextsms._session import _Session
 from pynextsms._validators import (
@@ -91,7 +91,7 @@ class SMSResource:
             recipients[0] if len(recipients) == 1 else recipients
         )
 
-        payload: Dict = {
+        payload: Dict[str, Any] = {
             "from": sender,
             "to": destination,
             "text": text,
@@ -212,7 +212,7 @@ class SMSResource:
         text = validate_text(text)
         ref = make_reference(reference)
 
-        payload: Dict = {
+        payload: Dict[str, Any] = {
             "from": sender,
             "to": to,
             "text": text,
