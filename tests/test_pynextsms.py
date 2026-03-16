@@ -364,8 +364,9 @@ class TestModels:
         assert RepeatInterval.WEEKLY.value == "weekly"
         assert RepeatInterval.MONTHLY.value == "monthly"
 
-#------------------------------------------------------
+
+# ------------------------------------------------------
 # Next update instructions after git commit
 # git tag v1.1.0 ensures that PyPI version is updated too
 # git push origin v1.1.0 ensures that GitHub version is updated too
-#------------------------------------------------------
+# ------------------------------------------------------

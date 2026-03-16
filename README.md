@@ -1,6 +1,6 @@
 <div align="center">
 
-# pynextsms 🇹🇿
+# [pynextsms 🇹🇿](https://ronaldgosso.github.io/pynextsms/)
 
 **Python SDK for the [NEXT SMS Tanzania](https://app.nextsms.co.tz) SMS API v2**
 
