@@ -72,6 +72,7 @@
 ---
 
 ## Installation
+[pynextsms](https://pypi.org/project/pynextsms/1.0.0/)
 
 ```bash
 pip install pynextsms
