@@ -53,15 +53,13 @@ pynextsms = ["py.typed"]
 
 # ── Tool configuration ───────────────────────────────────────────────────────
 
-[tool.black]
-line-length    = 100
-target-version = ["py38"]
-
 [tool.ruff]
 line-length    = 100
 target-version = "py38"
-select         = ["E", "F", "I", "UP", "B", "C4", "SIM"]
-ignore         = ["E501"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C4", "SIM"]
+ignore = ["E501"]
 
 [tool.mypy]
 python_version      = "3.8"
