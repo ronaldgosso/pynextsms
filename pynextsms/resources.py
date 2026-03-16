@@ -19,8 +19,8 @@ from pynextsms._validators import (
 from pynextsms.models import (
     BulkSMSResponse,
     MessageRecipient,
-    SMSResponse,
     ScheduleOptions,
+    SMSResponse,
 )
 
 logger = logging.getLogger("pynextsms")

@@ -10,6 +10,7 @@ Hierarchy::
     └── APIError              – Any other non-2xx HTTP response
 """
 from __future__ import annotations
+
 from typing import Optional
 
 

@@ -9,8 +9,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from datetime import date, time
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
-
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # Enums
