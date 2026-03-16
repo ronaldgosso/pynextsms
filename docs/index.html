@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pynextsms — Python SMS SDK for East Africa</title>
+    <meta name="description"
+        content="The cleanest Python SDK for sending SMS in Tanzania via messaging-service.co.tz. Send, schedule, and broadcast SMS with one line of code." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #070910;
+            --bg2: #0d1117;
+            --bg3: #111620;
+            --surface: #161c28;
+            --border: #1e2535;
+            --border2: #252d40;
+            --green: #00e887;
+            --green-dim: #00e88730;
+            --green-glow: #00e88715;
+            --teal: #00c9b1;
+            --blue: #3b82f6;
+            --text: #e8edf5;
+            --text2: #8892a4;
+            --text3: #525d6e;
+            --font-head: 'Syne', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-body: 'DM Sans', sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Noise texture overlay ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        /* ── Grid background ── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 48px 48px;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Layout ── */
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── NAV ── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+            background: rgba(7, 9, 16, 0.85);
+            backdrop-filter: blur(16px);
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--green);
+            text-decoration: none;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-logo span {
+            color: var(--text3);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text2);
+            text-decoration: none;
+            font-size: 13.5px;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            background: var(--green);
+            color: #000 !important;
+            font-weight: 600 !important;
+            padding: 7px 16px;
+            border-radius: 6px;
+            transition: opacity 0.2s !important;
+        }
+
+        .nav-cta:hover {
+            opacity: 0.85;
+        }
+
+        /* ── HERO ── */
+        .hero {
+            padding: 160px 0 100px;
+            position: relative;
+        }
+
+        /* Radial glow behind hero */
+        .hero-glow {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 700px;
+            height: 500px;
+            background: radial-gradient(ellipse at center, #00e88710 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--green-dim);
+            border: 1px solid #00e88740;
+            color: var(--green);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            padding: 5px 12px;
+            border-radius: 100px;
+            margin-bottom: 32px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+        }
+
+        h1 {
+            font-family: var(--font-head);
+            font-size: clamp(44px, 7vw, 80px);
+            font-weight: 800;
+            line-height: 1.0;
+            letter-spacing: -0.03em;
+            margin-bottom: 28px;
+            animation: fadeUp 0.6s 0.1s ease both;
+        }
+
+        h1 .accent {
+            color: var(--green);
+        }
+
+        h1 .dim {
+            color: var(--text3);
+        }
+
+        .hero-sub {
+            font-size: 18px;
+            color: var(--text2);
+            max-width: 540px;
+            line-height: 1.65;
+            font-weight: 300;
+            margin-bottom: 44px;
+            animation: fadeUp 0.6s 0.2s ease both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            animation: fadeUp 0.6s 0.3s ease both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--green);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00ffaa;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border2);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text3);
+            background: var(--surface);
+        }
+
+        /* ── INSTALL BAR ── */
+        .install-bar {
+            margin-top: 64px;
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 20px;
+            animation: fadeUp 0.6s 0.4s ease both;
+        }
+
+        .install-bar code {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--green);
+        }
+
+        .install-bar .dollar {
+            color: var(--text3);
+        }
+
+        .copy-btn {
+            background: var(--surface);
+            border: 1px solid var(--border2);
+            color: var(--text2);
+            font-size: 12px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: var(--font-mono);
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: var(--green);
+            border-color: var(--green);
+        }
+
+        /* ── STATS ROW ── */
+        .stats {
+            display: flex;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 80px 0;
+            background: var(--bg2);
+        }
+
+        .stat {
+            flex: 1;
+            padding: 28px 32px;
+            border-right: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .stat:last-child {
+            border-right: none;
+        }
+
+        .stat-num {
+            font-family: var(--font-head);
+            font-size: 36px;
+            font-weight: 800;
+            color: var(--green);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text3);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* ── SECTION HEADINGS ── */
+        .section {
+            padding: 80px 0;
+        }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--green);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        h2 {
+            font-family: var(--font-head);
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 16px;
+        }
+
+        .section-sub {
+            font-size: 17px;
+            color: var(--text2);
+            max-width: 520px;
+            font-weight: 300;
+            margin-bottom: 56px;
+        }
+
+        /* ── FEATURES GRID ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .feature {
+            background: var(--bg2);
+            padding: 32px 28px;
+            transition: background 0.2s;
+        }
+
+        .feature:hover {
+            background: var(--surface);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--green-dim);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .feature h3 {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .feature p {
+            font-size: 13.5px;
+            color: var(--text2);
+            line-height: 1.6;
+            font-weight: 300;
+        }
+
+        /* ── CODE EXAMPLES ── */
+        .code-section {
+            padding: 80px 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 0;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text3);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .tab:hover {
+            color: var(--text2);
+        }
+
+        .tab.active {
+            color: var(--green);
+            border-bottom-color: var(--green);
+        }
+
+        .code-block {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .code-block.active {
+            display: block;
+        }
+
+        .code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg3);
+        }
+
+        .code-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .code-dots span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .dot-r {
+            background: #ff5f57;
+        }
+
+        .dot-y {
+            background: #febc2e;
+        }
+
+        .dot-g {
+            background: #28c840;
+        }
+
+        .code-filename {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        pre {
+            padding: 28px;
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 13.5px;
+            line-height: 1.75;
+        }
+
+        /* Syntax highlighting */
+        .kw {
+            color: #ff79c6;
+        }
+
+        .fn {
+            color: #50fa7b;
+        }
+
+        .str {
+            color: #f1fa8c;
+        }
+
+        .cm {
+            color: #525d6e;
+            font-style: italic;
+        }
+
+        .cl {
+            color: #8be9fd;
+        }
+
+        .num {
+            color: #bd93f9;
+        }
+
+        .imp {
+            color: #ffb86c;
+        }
+
+        .grn {
+            color: var(--green);
+        }
+
+        /* ── API REFERENCE ── */
+        .api-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .api-card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+            transition: border-color 0.2s;
+        }
+
+        .api-card:hover {
+            border-color: var(--border2);
+        }
+
+        .api-method {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--green);
+            background: var(--green-dim);
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .api-card h3 {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .api-card p {
+            font-size: 13.5px;
+            color: var(--text2);
+            font-weight: 300;
+            margin-bottom: 14px;
+        }
+
+        .api-params {
+            list-style: none;
+        }
+
+        .api-params li {
+            font-size: 12.5px;
+            color: var(--text3);
+            padding: 5px 0;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .api-params li code {
+            font-family: var(--font-mono);
+            color: var(--teal);
+            font-size: 12px;
+        }
+
+        .param-req {
+            color: #ff5555;
+            font-size: 10px;
+            margin-left: auto;
+        }
+
+        /* ── EXCEPTIONS TABLE ── */
+        .exc-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .exc-table th {
+            text-align: left;
+            padding: 12px 16px;
+            background: var(--bg3);
+            border-bottom: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text3);
+            letter-spacing: 0.05em;
+            font-weight: 400;
+        }
+
+        .exc-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .exc-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .exc-table tr:hover td {
+            background: var(--surface);
+        }
+
+        .exc-table td:first-child {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: #ff79c6;
+            white-space: nowrap;
+        }
+
+        .exc-table td:nth-child(2) {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        .exc-table td:last-child {
+            color: var(--text2);
+            font-weight: 300;
+            font-size: 13.5px;
+        }
+
+        .exc-wrap {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* ── INSTALL SECTION ── */
+        .install-section {
+            padding: 80px 0;
+        }
+
+        .steps {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .step {
+            display: flex;
+            gap: 24px;
+            padding: 28px 32px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg2);
+            transition: background 0.2s;
+        }
+
+        .step:last-child {
+            border-bottom: none;
+        }
+
+        .step:hover {
+            background: var(--surface);
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            background: var(--green-dim);
+            border: 1px solid #00e88740;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--green);
+        }
+
+        .step-body {
+            flex: 1;
+        }
+
+        .step-title {
+            font-family: var(--font-head);
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .step-body p {
+            font-size: 13.5px;
+            color: var(--text2);
+            margin-bottom: 12px;
+            font-weight: 300;
+        }
+
+        .step-body code {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--green);
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            padding: 10px 16px;
+            border-radius: 6px;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            margin-top: 80px;
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-logo {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            color: var(--text3);
+        }
+
+        .footer-logo strong {
+            color: var(--green);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+            list-style: none;
+        }
+
+        .footer-links a {
+            font-size: 13px;
+            color: var(--text3);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-mit {
+            font-size: 12px;
+            color: var(--text3);
+        }
+
+        /* ── ANIMATIONS ── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+
+            .stat {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .stat:last-child {
+                border-bottom: none;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            h1 {
+                font-size: 38px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-inner">
+            <a class="nav-logo" href="#">py<span>next</span>sms</a>
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#usage">Usage</a></li>
+                <li><a href="#api">API</a></li>
+                <li><a href="#install">Install</a></li>
+                <li><a href="https://github.com/ronaldgosso/pynextsms" target="_blank" class="nav-cta">GitHub →</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-glow"></div>
+        <div class="wrap">
+            <div class="hero-badge">v1.0.0 — Now on PyPI</div>
+            <h1>
+                Send SMS in<br />
+                Tanzania<br />
+                <span class="accent">with one line.</span>
+            </h1>
+            <p class="hero-sub">
+                A clean, typed, zero-fuss Python SDK for the messaging-service.co.tz API v2.
+                Built for developers who want to ship fast and sleep soundly.
+            </p>
+            <div class="hero-actions">
+                <a href="#install" class="btn btn-primary">Get Started →</a>
+                <a href="https://github.com/ronaldgosso/pynextsms" target="_blank" class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path
+                            d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                    </svg>
+                    View on GitHub
+                </a>
+            </div>
+
+            <div class="install-bar">
+                <span class="dollar">$</span>
+                <code id="install-cmd">pip install pynextsms</code>
+                <button class="copy-btn" onclick="copyInstall()">copy</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <div class="wrap">
+        <div class="stats reveal">
+            <div class="stat">
+                <div class="stat-num">3.8+</div>
+                <div class="stat-label">Python Support</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">1</div>
+                <div class="stat-label">Dependency</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">45</div>
+                <div class="stat-label">Tests</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">95%</div>
+                <div class="stat-label">Coverage</div>
+            </div>
+            <div class="stat">
+                <div class="stat-num">MIT</div>
+                <div class="stat-label">License</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+        <div class="wrap">
+            <div class="reveal">
+                <div class="section-label">// features</div>
+                <h2>Everything you need.<br />Nothing you don't.</h2>
+                <p class="section-sub">Designed to be intuitive on day one and maintainable for years.</p>
+            </div>
+            <div class="features-grid reveal">
+                <div class="feature">
+                    <div class="feature-icon">📤</div>
+                    <h3>Single & Broadcast</h3>
+                    <p>Send to one number or a thousand with the exact same API call. The SDK handles the routing.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Personalised Bulk</h3>
+                    <p>Different messages to different people in one HTTP call via <code
+                            style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">send_bulk()</code>.
+                    </p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🕐</div>
+                    <h3>Scheduling</h3>
+                    <p>Schedule one-time or recurring SMS — hourly, daily, weekly, or monthly — with a clean dataclass
+                        API.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔁</div>
+                    <h3>Auto Retry</h3>
+                    <p>Transient 5xx errors are retried automatically with exponential back-off. No extra code needed.
+                    </p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Typed Responses</h3>
+                    <p>Every response is a typed dataclass — no raw dict wrangling. Full mypy strict support included.
+                    </p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔑</div>
+                    <h3>12-Factor Ready</h3>
+                    <p>Credentials from env vars (<code
+                            style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">PYNEXTSMS_TOKEN</code>)
+                        out of the box. Docker and CI friendly.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CODE EXAMPLES -->
+    <section class="code-section" id="usage">
+        <div class="wrap">
+            <div class="reveal">
+                <div class="section-label">// usage</div>
+                <h2>Simple by design.</h2>
+                <p class="section-sub">Four methods. Consistent signatures. No surprises.</p>
+            </div>
+            <div class="reveal">
+                <div class="tabs">
+                    <div class="tab active" onclick="showTab('send')">Send SMS</div>
+                    <div class="tab" onclick="showTab('broadcast')">Broadcast</div>
+                    <div class="tab" onclick="showTab('bulk')">Bulk</div>
+                    <div class="tab" onclick="showTab('schedule')">Schedule</div>
+                    <div class="tab" onclick="showTab('errors')">Error Handling</div>
+                </div>
+
+                <!-- Send -->
+                <div class="code-block active" id="tab-send">
+                    <div class="code-header">
+                        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span
+                                class="dot-g"></span></div>
+                        <span class="code-filename">send_single.py</span>
+                        <span></span>
+                    </div>
+                    <pre><span class="kw">from</span> <span class="imp">pynextsms</span> <span class="kw">import</span> <span class="cl">SMSClient</span>
+
+client = <span class="cl">SMSClient</span>(
+    token=<span class="str">"your_bearer_token"</span>,
+    sender_id=<span class="str">"RMNDR"</span>,
+)
+
+<span class="cm"># Send to a single recipient</span>
+resp = client.sms.<span class="fn">send</span>(
+    to=<span class="str">"255763930052"</span>,
+    text=<span class="str">"Hello, Ronald! Welcome aboard."</span>,
+    reference=<span class="str">"onboard_001"</span>,   <span class="cm"># optional</span>
+)
+
+<span class="kw">if</span> resp.successful:
+    <span class="fn">print</span>(<span class="str">f"✓ Sent! id=<span class="grn">{resp.message_id}</span>"</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="str">f"✗ Failed: <span class="grn">{resp.raw}</span>"</span>)</pre>
+                </div>
+
+                <!-- Broadcast -->
+                <div class="code-block" id="tab-broadcast">
+                    <div class="code-header">
+                        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span
+                                class="dot-g"></span></div>
+                        <span class="code-filename">broadcast.py</span>
+                        <span></span>
+                    </div>
+                    <pre><span class="kw">from</span> <span class="imp">pynextsms</span> <span class="kw">import</span> <span class="cl">SMSClient</span>
+
+<span class="kw">with</span> <span class="cl">SMSClient</span>(token=<span class="str">"your_token"</span>, sender_id=<span class="str">"BRAND"</span>) <span class="kw">as</span> client:
+
+    <span class="cm"># Same message → many recipients in ONE API call</span>
+    resp = client.sms.<span class="fn">send</span>(
+        to=[
+            <span class="str">"255712345678"</span>,
+            <span class="str">"255686123903"</span>,
+            <span class="str">"255767245612"</span>,
+        ],
+        text=<span class="str">"Hello subscribers — June sale starts now!"</span>,
+        reference=<span class="str">"june_promo"</span>,
+    )
+
+    <span class="fn">print</span>(<span class="str">f"Broadcast sent: <span class="grn">{resp.successful}</span>"</span>)</pre>
+                </div>
+
+                <!-- Bulk -->
+                <div class="code-block" id="tab-bulk">
+                    <div class="code-header">
+                        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span
+                                class="dot-g"></span></div>
+                        <span class="code-filename">send_bulk.py</span>
+                        <span></span>
+                    </div>
+                    <pre><span class="kw">from</span> <span class="imp">pynextsms</span> <span class="kw">import</span> <span class="cl">SMSClient</span>, <span class="cl">MessageRecipient</span>
+
+<span class="kw">with</span> <span class="cl">SMSClient</span>(token=<span class="str">"your_token"</span>, sender_id=<span class="str">"BRAND"</span>) <span class="kw">as</span> client:
+
+    <span class="cm"># Different message per recipient — still ONE API call</span>
+    resp = client.sms.<span class="fn">send_bulk</span>(
+        messages=[
+            <span class="cl">MessageRecipient</span>(<span class="str">"255763930052"</span>, <span class="str">"Hello Precious, welcome!"</span>),
+            <span class="cl">MessageRecipient</span>(<span class="str">"255627350020"</span>, <span class="str">"Hello Patricia, welcome!"</span>),
+            <span class="cl">MessageRecipient</span>(<span class="str">"255773930052"</span>, <span class="str">"Hello Daniel, welcome!"</span>),
+        ],
+        reference=<span class="str">"onboarding_batch_001"</span>,
+    )
+
+    <span class="fn">print</span>(<span class="str">f"Sent <span class="grn">{resp.total}</span> personalised messages"</span>)</pre>
+                </div>
+
+                <!-- Schedule -->
+                <div class="code-block" id="tab-schedule">
+                    <div class="code-header">
+                        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span
+                                class="dot-g"></span></div>
+                        <span class="code-filename">schedule.py</span>
+                        <span></span>
+                    </div>
+                    <pre><span class="kw">from</span> <span class="imp">datetime</span> <span class="kw">import</span> date, time
+<span class="kw">from</span> <span class="imp">pynextsms</span> <span class="kw">import</span> <span class="cl">SMSClient</span>, <span class="cl">ScheduleOptions</span>, <span class="cl">RepeatInterval</span>
+
+<span class="kw">with</span> <span class="cl">SMSClient</span>(token=<span class="str">"your_token"</span>, sender_id=<span class="str">"BRAND"</span>) <span class="kw">as</span> client:
+
+    opts = <span class="cl">ScheduleOptions</span>(
+        send_date  = <span class="fn">date</span>(<span class="num">2025</span>, <span class="num">6</span>, <span class="num">1</span>),
+        send_time  = <span class="fn">time</span>(<span class="num">9</span>, <span class="num">0</span>),         <span class="cm"># 09:00 AM</span>
+        repeat     = <span class="cl">RepeatInterval</span>.DAILY,
+        end_date   = <span class="fn">date</span>(<span class="num">2025</span>, <span class="num">6</span>, <span class="num">30</span>),
+    )
+
+    resp = client.sms.<span class="fn">schedule</span>(
+        to      = <span class="str">"255763930052"</span>,
+        text    = <span class="str">"Good morning! Check your dashboard."</span>,
+        options = opts,
+    )
+
+    <span class="fn">print</span>(<span class="str">f"Scheduled: <span class="grn">{resp.successful}</span> ref=<span class="grn">{resp.reference}</span>"</span>)</pre>
+                </div>
+
+                <!-- Errors -->
+                <div class="code-block" id="tab-errors">
+                    <div class="code-header">
+                        <div class="code-dots"><span class="dot-r"></span><span class="dot-y"></span><span
+                                class="dot-g"></span></div>
+                        <span class="code-filename">error_handling.py</span>
+                        <span></span>
+                    </div>
+                    <pre><span class="kw">from</span> <span class="imp">pynextsms</span> <span class="kw">import</span> (
+    <span class="cl">SMSClient</span>,
+    <span class="cl">AuthenticationError</span>,
+    <span class="cl">ValidationError</span>,
+    <span class="cl">RateLimitError</span>,
+    <span class="cl">APIError</span>,
+)
+
+client = <span class="cl">SMSClient</span>(token=<span class="str">"your_token"</span>, sender_id=<span class="str">"RMNDR"</span>)
+
+<span class="kw">try</span>:
+    resp = client.sms.<span class="fn">send</span>(<span class="str">"255763930052"</span>, <span class="str">"Hello!"</span>)
+
+<span class="kw">except</span> <span class="cl">AuthenticationError</span>:
+    <span class="fn">print</span>(<span class="str">"Bad token — check PYNEXTSMS_TOKEN"</span>)
+
+<span class="kw">except</span> <span class="cl">ValidationError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="str">f"Bad input: <span class="grn">{e}</span>"</span>)    <span class="cm"># caught before HTTP</span>
+
+<span class="kw">except</span> <span class="cl">RateLimitError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="str">f"Slow down — retry in <span class="grn">{e.retry_after}</span>s"</span>)
+
+<span class="kw">except</span> <span class="cl">APIError</span> <span class="kw">as</span> e:
+    <span class="fn">print</span>(<span class="str">f"API error HTTP <span class="grn">{e.status_code}</span>: <span class="grn">{e}</span>"</span>)</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API REFERENCE -->
+    <section class="section" id="api">
+        <div class="wrap">
+            <div class="reveal">
+                <div class="section-label">// api reference</div>
+                <h2>The full surface area.</h2>
+                <p class="section-sub">Three methods. Every parameter documented.</p>
+            </div>
+            <div class="api-grid reveal">
+                <div class="api-card">
+                    <span class="api-method">client.sms.send()</span>
+                    <h3>send(to, text, *, sender_id, flash, reference)</h3>
+                    <p>Send one message to one or many recipients. Pass a list for broadcast.</p>
+                    <ul class="api-params">
+                        <li><code>to</code> str | list[str] <span class="param-req">required</span></li>
+                        <li><code>text</code> str <span class="param-req">required</span></li>
+                        <li><code>sender_id</code> str | None — overrides default</li>
+                        <li><code>flash</code> bool — Class-0 SMS. Default False</li>
+                        <li><code>reference</code> str | None — auto-generated if omitted</li>
+                    </ul>
+                </div>
+                <div class="api-card">
+                    <span class="api-method">client.sms.send_bulk()</span>
+                    <h3>send_bulk(messages, *, flash, reference)</h3>
+                    <p>Send different messages to different recipients in a single API call.</p>
+                    <ul class="api-params">
+                        <li><code>messages</code> list[MessageRecipient] <span class="param-req">required</span></li>
+                        <li><code>flash</code> bool — Default False</li>
+                        <li><code>reference</code> str | None — batch tracking ref</li>
+                    </ul>
+                </div>
+                <div class="api-card">
+                    <span class="api-method">client.sms.schedule()</span>
+                    <h3>schedule(to, text, options, *, sender_id, reference)</h3>
+                    <p>Schedule a one-time or recurring SMS for a future date and time.</p>
+                    <ul class="api-params">
+                        <li><code>to</code> str <span class="param-req">required</span></li>
+                        <li><code>text</code> str <span class="param-req">required</span></li>
+                        <li><code>options</code> ScheduleOptions <span class="param-req">required</span></li>
+                        <li><code>sender_id</code> str | None</li>
+                        <li><code>reference</code> str | None</li>
+                    </ul>
+                </div>
+                <div class="api-card">
+                    <span class="api-method">ScheduleOptions</span>
+                    <h3>ScheduleOptions(send_date, send_time, repeat, ...)</h3>
+                    <p>Dataclass controlling when (and how often) a scheduled SMS fires.</p>
+                    <ul class="api-params">
+                        <li><code>send_date</code> date <span class="param-req">required</span></li>
+                        <li><code>send_time</code> time <span class="param-req">required</span></li>
+                        <li><code>repeat</code> RepeatInterval | None</li>
+                        <li><code>start_date</code> date | None</li>
+                        <li><code>end_date</code> date | None</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Exceptions table -->
+            <div style="margin-top:48px;" class="reveal">
+                <div class="section-label" style="margin-bottom:16px;">// exceptions</div>
+                <div class="exc-wrap">
+                    <table class="exc-table">
+                        <thead>
+                            <tr>
+                                <th>Exception</th>
+                                <th>HTTP</th>
+                                <th>When raised</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AuthenticationError</td>
+                                <td>401</td>
+                                <td>Token is missing, expired, or rejected by the API</td>
+                            </tr>
+                            <tr>
+                                <td>ValidationError</td>
+                                <td>—</td>
+                                <td>Bad input caught <em>before</em> any HTTP request is made</td>
+                            </tr>
+                            <tr>
+                                <td>RateLimitError</td>
+                                <td>429</td>
+                                <td>Too many requests. Check <code
+                                        style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">.retry_after</code>
+                                    attribute</td>
+                            </tr>
+                            <tr>
+                                <td>APIError</td>
+                                <td>4xx/5xx</td>
+                                <td>Any other non-2xx API response. Check <code
+                                        style="font-family:var(--font-mono);font-size:12px;color:var(--teal)">.status_code</code>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PyNextSMSError</td>
+                                <td>—</td>
+                                <td>Base class — catch this to handle all SDK errors in one block</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section class="install-section" id="install">
+        <div class="wrap">
+            <div class="reveal">
+                <div class="section-label">// get started</div>
+                <h2>Up and running<br />in 60 seconds.</h2>
+                <p class="section-sub">No configuration files. No boilerplate. Just install and go.</p>
+            </div>
+            <div class="steps reveal">
+                <div class="step">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <div class="step-title">Install the package</div>
+                        <p>Requires Python 3.8+ and pip.</p>
+                        <code>pip install pynextsms</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <div class="step-title">Set your credentials</div>
+                        <p>Get your Bearer Token from the messaging-service.co.tz dashboard.</p>
+                        <code>export PYNEXTSMS_TOKEN="your_bearer_token"
+export PYNEXTSMS_SENDER_ID="YOURBRAND"</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <div class="step-title">Send your first SMS</div>
+                        <p>That's it — no config files, no boilerplate.</p>
+                        <code>python -c "
+from pynextsms import SMSClient
+client = SMSClient()
+resp = client.sms.send('255763930052', 'Hello!')
+print(resp)
+"</code>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-num">4</div>
+                    <div class="step-body">
+                        <div class="step-title">Explore further</div>
+                        <p>Read the full source, report issues, or contribute on GitHub.</p>
+                        <code>https://github.com/ronaldgosso/pynextsms</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-logo">
+                <strong>pynextsms</strong> v1.0.0
+            </div>
+            <ul class="footer-links">
+                <li><a href="https://github.com/ronaldgosso/pynextsms" target="_blank">GitHub</a></li>
+                <li><a href="https://pypi.org/project/pynextsms/" target="_blank">PyPI</a></li>
+                <li><a href="https://github.com/ronaldgosso/pynextsms/issues" target="_blank">Issues</a></li>
+                <li><a href="https://github.com/ronaldgosso/pynextsms/blob/main/CHANGELOG.md"
+                        target="_blank">Changelog</a></li>
+            </ul>
+            <div class="footer-mit">MIT License · Built for East Africa</div>
+        </div>
+    </footer>
+
+    <script>
+        // ── Tab switcher ─────────────────────────────────────────────
+        function showTab(name) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.code-block').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-' + name).classList.add('active');
+        }
+
+        // ── Copy install command ──────────────────────────────────────
+        function copyInstall() {
+            navigator.clipboard.writeText('pip install pynextsms').then(() => {
+                const btn = document.querySelector('.copy-btn');
+                btn.textContent = 'copied!';
+                btn.style.color = 'var(--green)';
+                setTimeout(() => { btn.textContent = 'copy'; btn.style.color = ''; }, 2000);
+            });
+        }
+
+        // ── Scroll reveal ─────────────────────────────────────────────
+        const observer = new IntersectionObserver(
+            entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+            { threshold: 0.1 }
+        );
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>
